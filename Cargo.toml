@@ -5,8 +5,8 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.98"
-iroh = "0.90.0"
-iroh-base = "0.90.0"
+iroh = "0.35"
+iroh-base = "0.35"
 n0-snafu = "0.2.1"
 n0-watcher = "0.2.0"
 tokio = { version = "1.45.1", features = ["full"] }
