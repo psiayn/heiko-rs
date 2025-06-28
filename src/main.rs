@@ -7,9 +7,9 @@
 //!     cargo run --example echo --features=examples
 
 use iroh::{
+    Endpoint, NodeAddr,
     endpoint::Connection,
     protocol::{AcceptError, ProtocolHandler, Router},
-    Endpoint, NodeAddr,
 };
 use n0_snafu::{Result, ResultExt};
 use n0_watcher::Watcher as _;
@@ -43,14 +43,16 @@ async fn connect_side(addr: NodeAddr) -> Result<()> {
     let (mut send, mut recv) = conn.open_bi().await.e()?;
 
     // Send some data to be echoed
-    send.write_all(b"Hello, world!").await.e()?;
+    send.write_all(b"za warudo").await.e()?;
 
     // Signal the end of data for this particular stream
     send.finish().e()?;
 
     // Receive the echo, but limit reading up to maximum 1000 bytes
     let response = recv.read_to_end(1000).await.e()?;
-    assert_eq!(&response, b"Hello, world!");
+    assert_eq!(&response, b"za warudo");
+
+    println!("got response: {}", String::from_utf8(response).unwrap());
 
     // Explicitly close the whole connection.
     conn.close(0u32.into(), b"bye!");
