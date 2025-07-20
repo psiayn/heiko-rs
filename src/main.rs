@@ -1,11 +1,13 @@
+mod stats;
 
 use iroh::{
+    Endpoint, NodeAddr,
     endpoint::Connection,
     protocol::{AcceptError, ProtocolHandler, Router},
-    Endpoint, NodeAddr,
 };
 use n0_snafu::{Result, ResultExt};
 use n0_watcher::Watcher as _;
+use stats::Stats;
 
 /// Each protocol is identified by its ALPN string.
 ///
@@ -62,7 +64,7 @@ async fn connect_side(addr: NodeAddr) -> Result<()> {
 async fn start_accept_side() -> Result<Router> {
     let endpoint = Endpoint::builder().discovery_n0().bind().await?;
 
-    let echo = Echo::new();
+    let echo = State::new();
     // Build our protocol handler and add our protocol, identified by its ALPN, and spawn the node.
     let router = Router::builder(endpoint).accept(ALPN, echo).spawn();
 
@@ -80,36 +82,47 @@ struct Node {
     node_id: String,
     last_seen: String, // convert to timestamp
     jobs: u8,
-    resources: f64, // calculate some % of resources used instead of how many cpus and ram left
+    resources: Stats, // calculate some % of resources used instead of how many cpus and ram left
 }
 
 #[derive(Debug, Clone)]
 struct Job {
     job_id: String,
     nodes_ids: Vec<String>, // ids of nodes running jobs
-    config: String // temp placeholder
+    config: String,         // temp placeholder
 }
 
 #[derive(Debug, Clone)]
-struct Echo {
+struct State {
     nodes: Vec<Node>,
-    jobs: Vec<Job>
+    jobs: Vec<Job>,
 }
 
 // crdt, hash table, blah blah blah
 // node details
 // send messages
 
-impl Echo {
-    fn new() -> Echo {
-        Echo {
+impl State {
+    fn new() -> State {
+        let nodes: Vec<Node> = Vec::new();
+        State {
             nodes: Vec::new(),
-            jobs: Vec::new()
+            jobs: Vec::new(),
         }
+    }
+
+    fn merge(&self, state: State) -> State {
+        // brr aa moment
+
+        self.clone()
+    }
+
+    fn sync_state(&self, curr_node_id: String) {
+        // do something to merge the two structs ig
     }
 }
 
-impl ProtocolHandler for Echo {
+impl ProtocolHandler for State {
     /// The `accept` method is called for each incoming connection for our ALPN.
     ///
     /// The returned future runs on a newly spawned tokio task, so it can run as long as
